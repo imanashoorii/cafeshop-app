@@ -5,7 +5,7 @@ from datetime import datetime
 
 class User(AbstractUser):
     nationalCode = models.CharField(max_length=70, null=True)
-    postalCode = models.CharField(max_length=10)
+    postalCode = models.CharField(max_length=10, null=True)
     phone = models.CharField(max_length=11, null=True)
     mobile = models.CharField(max_length=11, null=True)
     email = models.EmailField(null=True)
