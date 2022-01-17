@@ -8,7 +8,7 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from .models import User
 
-from .serializers import UserSerializer
+from .serializers import UserSerializer, ChangePasswordSerializer
 
 
 class CustomAuthToken(ObtainAuthToken):
@@ -41,3 +41,21 @@ class LogoutAPIView(APIView):
 class UserRegistration(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
+
+class UserChangePassword(generics.UpdateAPIView):
+    queryset = User.objects.all()
+    permission_classes = (IsAuthenticated,)
+    serializer_class = ChangePasswordSerializer
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        result = {
+            "message": "success",
+            "status": 200,
+        }
+        return Response(result)

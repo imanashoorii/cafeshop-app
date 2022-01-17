@@ -1,5 +1,7 @@
 import re
 from datetime import datetime
+
+from django.contrib.auth.password_validation import validate_password
 from django.utils.crypto import get_random_string
 
 from rest_framework import serializers
@@ -65,3 +67,29 @@ class UserSerializer(serializers.ModelSerializer):
         user.save()
         return user
 
+
+class ChangePasswordSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
+    password2 = serializers.CharField(write_only=True, required=True)
+    old_password = serializers.CharField(write_only=True, required=True)
+
+    class Meta:
+        model = User
+        fields = ('old_password', 'password', 'password2')
+
+    def validate(self, attr):
+        if attr.get("password") != attr.get("password2"):
+            raise serializers.ValidationError({"error": "رمزعبور تطابق ندارد"})
+        return attr
+
+    def validate_old_password(self, old_password):
+        user = self.context['request'].user
+        if not user.check_password(old_password):
+            raise serializers.ValidationError({"error": "رمزعبور پیشین صحیح نمی باشد"})
+        return old_password
+
+    def update(self, instance, validated_data):
+        instance.set_password(validated_data['password'])
+        instance.save()
+
+        return instance
