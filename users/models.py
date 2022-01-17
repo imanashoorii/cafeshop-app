@@ -8,9 +8,9 @@ from django.utils import timezone
 class User(AbstractUser):
     nationalCode = models.CharField(max_length=70, null=True)
     postalCode = models.CharField(max_length=10, null=True)
-    phone = models.CharField(max_length=11, null=True)
-    mobile = models.CharField(max_length=11, null=True)
-    email = models.EmailField(null=True)
+    phone = models.CharField(max_length=11)
+    mobile = models.CharField(max_length=11)
+    email = models.CharField(max_length=256)
     address = models.CharField(max_length=1000, null=True)
     refCode = models.CharField(max_length=50, null=True)
     last_login = models.DateTimeField(blank=True, null=True)
