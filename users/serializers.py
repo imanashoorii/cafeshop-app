@@ -1,5 +1,6 @@
 import re
 from datetime import datetime
+from django.utils.crypto import get_random_string
 
 from rest_framework import serializers
 from .models import User
@@ -60,7 +61,7 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = super().create(validated_data)
         user.set_password(validated_data['password'])
-        user.updatedAt = datetime.now()
+        user.refCode = get_random_string(10)
         user.save()
         return user
 
