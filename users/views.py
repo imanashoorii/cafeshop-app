@@ -1,14 +1,15 @@
 from django.utils import timezone
 from rest_framework import generics
-from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from .models import User
+from .permissions import UserIsOwnerOrReadOnly
 
-from .serializers import UserSerializer, ChangePasswordSerializer
+from .serializers import UserSerializer, ChangePasswordSerializer, UpdateUserSerializer
 
 
 class CustomAuthToken(ObtainAuthToken):
@@ -59,3 +60,25 @@ class UserChangePassword(generics.UpdateAPIView):
             "status": 200,
         }
         return Response(result)
+
+
+class UpdateUserProfile(generics.UpdateAPIView):
+    queryset = User.objects.all()
+    permission_classes = (IsAuthenticated,
+                          UserIsOwnerOrReadOnly,)
+    serializer_class = UpdateUserSerializer
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        result = {
+            "message": "success",
+            "details": serializer.data,
+            "status": status.HTTP_200_OK,
+
+        }
+        return Response(result)
+

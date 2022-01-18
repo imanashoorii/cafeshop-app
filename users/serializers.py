@@ -1,6 +1,4 @@
 import re
-from datetime import datetime
-
 from django.contrib.auth.password_validation import validate_password
 from django.utils.crypto import get_random_string
 
@@ -56,6 +54,9 @@ class UserSerializer(serializers.ModelSerializer):
 
     def validate_email(self, email):
         pattern = r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
+        user = self.context['request'].user
+        if User.objects.exclude(pk=user.pk).filter(email=email).exists():
+            raise serializers.ValidationError({"error": "ایمیل تکراری است"})
         if not re.match(pattern, email):
             raise serializers.ValidationError("آدرس ایمیل معتبر نیست")
         return email
@@ -92,4 +93,90 @@ class ChangePasswordSerializer(serializers.ModelSerializer):
         instance.set_password(validated_data['password'])
         instance.save()
 
+        return instance
+
+
+class UpdateUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('first_name', 'last_name', 'address', 'postalCode', 'email', 'mobile', 'phone')
+        extra_kwargs = {
+            'first_name': {
+                'required': True,
+                "error_messages": {
+                    "required": "نام وارد نشده است",
+                },
+            },
+            'last_name': {
+                'required': True,
+                "error_messages": {
+                    "required": "نام خانوادگی وارد نشده است",
+                },
+            },
+            'address': {
+                'required': True,
+                "error_messages": {
+                    "required": "آدرس وارد نشده است",
+                },
+            },
+            'postalCode': {
+                'required': True,
+                "error_messages": {
+                    "required": "کدپستی وارد نشده است",
+                },
+            },
+            "email": {
+                'required': False,
+                "error_messages": {
+                    "required": "آدرس ایمیل وارد نشده است",
+                },
+            },
+            "mobile": {
+                'required': False,
+                "error_messages": {
+                    "required": "شماره همراه وارد نشده است",
+                },
+            },
+            "phone": {
+                'required': False,
+                "error_messages": {
+                    "required": "شماره تلفن وارد نشده است",
+                },
+            },
+        }
+
+    def validate_postalCode(self, postalCode):
+        user = self.context['request'].user
+        pattern = r"^\b(?!(\d)\1{3})[13-9]{4}[1346-9][013-9]{5}\b$"
+        if User.objects.exclude(pk=user.pk).filter(postalCode=postalCode).exists():
+            raise serializers.ValidationError({"error": "کدپستی در سیستم وجود دارد"})
+        if not re.match(pattern, postalCode):
+            raise serializers.ValidationError({"error": "کدپستی وارد شده صحیح نمی باشد"})
+        return postalCode
+
+    def validate_mobile(self, mobile):
+        pattern = r'^09\d{9}$'
+        if not re.match(pattern, mobile):
+            raise serializers.ValidationError("شماره همراه وارد شده معتبر نیست!")
+        return mobile
+
+    def validate_email(self, email):
+        pattern = r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
+        user = self.context['request'].user
+        if User.objects.exclude(pk=user.pk).filter(email=email).exists():
+            raise serializers.ValidationError({"error": "ایمیل تکراری است"})
+        if not re.match(pattern, email):
+            raise serializers.ValidationError("آدرس ایمیل معتبر نیست")
+        return email
+
+    def update(self, instance, validated_data):
+        instance.first_name = validated_data['first_name']
+        instance.last_name = validated_data['last_name']
+        instance.address = validated_data['address']
+        instance.postalCode = validated_data['postalCode']
+        instance.mobile = validated_data.get('mobile') if validated_data.get('mobile') else instance.mobile
+        instance.phone = validated_data.get('phone') if validated_data.get('phone') else instance.phone
+        instance.email = validated_data.get('email') if validated_data.get('email') else instance.email
+
+        instance.save()
         return instance
