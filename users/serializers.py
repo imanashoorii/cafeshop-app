@@ -127,21 +127,12 @@ class UpdateUserSerializer(serializers.ModelSerializer):
             },
             "email": {
                 'required': False,
-                "error_messages": {
-                    "required": "آدرس ایمیل وارد نشده است",
-                },
             },
             "mobile": {
                 'required': False,
-                "error_messages": {
-                    "required": "شماره همراه وارد نشده است",
-                },
             },
             "phone": {
                 'required': False,
-                "error_messages": {
-                    "required": "شماره تلفن وارد نشده است",
-                },
             },
         }
 
