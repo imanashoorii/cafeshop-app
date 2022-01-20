@@ -6,6 +6,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
+from .kavenegar import sendLoginSMS
 from .models import User
 from .permissions import UserIsOwnerOrReadOnly
 
@@ -81,4 +82,10 @@ class UpdateUserProfile(generics.UpdateAPIView):
 
         }
         return Response(result)
+
+
+class LoginUserWithOtp(APIView):
+    def post(self, request, format=None):
+        serializer = U
+
 
