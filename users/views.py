@@ -84,8 +84,5 @@ class UpdateUserProfile(generics.UpdateAPIView):
         return Response(result)
 
 
-class LoginUserWithOtp(APIView):
-    def post(self, request, format=None):
-        serializer = U
 
 
