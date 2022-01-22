@@ -1,15 +1,30 @@
 from django.db import models
 
 
+class Category(models.Model):
+    CHOICES = [
+        ('Appetizer', 'تست')
+    ]
+    name = models.CharField(max_length=100, choices=CHOICES)
+
+    class Meta:
+        ordering = ('name',)
+        verbose_name = "category"
+        verbose_name_plural = "categories"
+
+    def __str__(self):
+        return self.name
+
+
 class Menu(models.Model):
-    category = models.CharField(max_length=100)
+    category = models.ForeignKey(Category, related_name="menu", on_delete=models.CASCADE)
     name = models.CharField(max_length=256)
-    ingredients = models.TextField()
-    description = models.TextField()
+    photo = models.ImageField(upload_to='menu/images/')
+    description = models.TextField(null=True, blank=True)
     price = models.PositiveIntegerField()
-    discount = models.PositiveIntegerField()
-    isCold = models.BooleanField(null=True, blank=True)
-    isHot = models.BooleanField(null=True, blank=True)
+
+    class Meta:
+        ordering = ('category',)
 
     def __str__(self):
         return f'{self.category} {self.name}'

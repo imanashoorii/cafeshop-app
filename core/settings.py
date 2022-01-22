@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/4.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
-
+import os
 from pathlib import Path
 import environ
 
@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'cart',
     'users',
     'menu',
+    'logger'
 ]
 
 MIDDLEWARE = [
@@ -149,6 +150,10 @@ REST_FRAMEWORK = {
 }
 
 CORS_ORIGIN_ALLOW_ALL = True
+
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
 
 # .env keys
 KAVENEGAR_KEY = env('KAVENEGAR_SECRET_KEY')
