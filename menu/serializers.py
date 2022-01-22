@@ -1,8 +1,17 @@
 from rest_framework import serializers
-from .models import Menu
+from .models import Menu, Category
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = "__all__"
 
 
 class MenuSerializer(serializers.ModelSerializer):
+    category = serializers.StringRelatedField(many=False, read_only=True)
+    category_id = serializers.IntegerField(write_only=True)
+
     class Meta:
         model = Menu
         exclude = ['id']
@@ -25,7 +34,7 @@ class MenuSerializer(serializers.ModelSerializer):
                     "required": "قیمت وارد نشده است",
                 },
             },
-            'category': {
+            'category_id': {
                 'required': True,
                 "error_messages": {
                     "required": "دسته بندی وارد نشده است",
