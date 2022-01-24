@@ -1,7 +1,7 @@
 from rest_framework import generics
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
-from .models import Menu
-from .serializers import MenuSerializer
+from .models import Menu, Category
+from .serializers import MenuSerializer, CategorySerializer
 
 
 class CreateMenuItem(generics.CreateAPIView):
@@ -9,4 +9,26 @@ class CreateMenuItem(generics.CreateAPIView):
     serializer_class = MenuSerializer
     permission_classes = (IsAdminUser,
                           IsAuthenticated,)
+
+
+class CreateMenuCategory(generics.CreateAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = (IsAuthenticated,
+                          IsAdminUser)
+
+
+class DeleteMenuCategory(generics.DestroyAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = (IsAuthenticated,
+                          IsAdminUser)
+
+
+class ListMenuCategories(generics.ListAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = (IsAuthenticated,
+                          IsAdminUser)
+
 

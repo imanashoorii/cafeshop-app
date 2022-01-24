@@ -6,6 +6,14 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = "__all__"
+        extra_kwargs = {
+            'name': {
+                'required': True,
+                "error_messages": {
+                    "required": "نام وارد نشده است",
+                },
+            },
+        }
 
 
 class MenuSerializer(serializers.ModelSerializer):
