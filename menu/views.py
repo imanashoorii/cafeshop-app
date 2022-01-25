@@ -1,4 +1,5 @@
 from rest_framework import generics, status
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from .models import Menu, Category
@@ -8,6 +9,7 @@ from .serializers import MenuSerializer, CategorySerializer, ListMenuByCategoryS
 class CreateMenuItem(generics.CreateAPIView):
     queryset = Menu.objects.all()
     serializer_class = MenuSerializer
+    parser_classes = (MultiPartParser, FormParser)
     permission_classes = (IsAdminUser,
                           IsAuthenticated,)
 
