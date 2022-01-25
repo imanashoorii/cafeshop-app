@@ -49,3 +49,20 @@ class MenuSerializer(serializers.ModelSerializer):
                 },
             }
         }
+
+
+class ListMenuByCategorySerializer(serializers.ModelSerializer):
+    category = serializers.StringRelatedField(many=False, read_only=True)
+    category_id = serializers.IntegerField(write_only=True)
+
+    class Meta:
+        model = Menu
+        exclude = ("id",)
+        extra_kwargs = {
+            'category_id': {
+                'required': True,
+                "error_messages": {
+                    "required": "دسته بندی وارد نشده است",
+                },
+            }
+        }
