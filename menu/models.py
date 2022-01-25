@@ -3,7 +3,10 @@ from django.db import models
 
 class Category(models.Model):
     CHOICES = [
-        ('Appetizer', 'تست')
+        ('Appetizer', 'پیش غذا'),
+        ('Tea and coffee', 'چای و قهوه'),
+        ('Deserts', 'دسرها'),
+        ('Main Food', 'غذاهای اصلی'),
     ]
     name = models.CharField(max_length=100, choices=CHOICES)
 
