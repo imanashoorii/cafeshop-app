@@ -1,8 +1,10 @@
 from rest_framework import serializers
-from .models import Menu, Category
+from .models import Menu, Category, Type
 
 
 class CategorySerializer(serializers.ModelSerializer):
+    name = serializers.CharField(source='get_name_display')
+
     class Meta:
         model = Category
         fields = "__all__"
@@ -18,6 +20,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class MenuSerializer(serializers.ModelSerializer):
     category = serializers.StringRelatedField(many=False, read_only=True)
+    type = serializers.StringRelatedField(many=False, read_only=True)
     category_id = serializers.IntegerField(write_only=True)
 
     class Meta:
@@ -53,8 +56,16 @@ class MenuSerializer(serializers.ModelSerializer):
 
 class ListMenuByCategorySerializer(serializers.ModelSerializer):
     category = serializers.StringRelatedField(many=False, read_only=True)
+    type = serializers.StringRelatedField(many=False, read_only=True)
 
     class Meta:
         model = Menu
         exclude = ("id",)
 
+
+class TypeSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(source='get_name_display')
+
+    class Meta:
+        model = Type
+        fields = '__all__'

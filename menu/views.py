@@ -2,8 +2,11 @@ from rest_framework import generics, status
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
-from .models import Menu, Category
-from .serializers import MenuSerializer, CategorySerializer, ListMenuByCategorySerializer
+from .models import Menu, Category, Type
+from .serializers import MenuSerializer, \
+    CategorySerializer, \
+    ListMenuByCategorySerializer, \
+    TypeSerializer
 
 
 class CreateMenuItem(generics.CreateAPIView):
@@ -14,7 +17,12 @@ class CreateMenuItem(generics.CreateAPIView):
                           IsAuthenticated,)
 
 
-class ListMenuItems(generics.ListAPIView):
+class ListAllMenuItems(generics.ListAPIView):
+    queryset = Menu.objects.all()
+    serializer_class = MenuSerializer
+
+
+class ListMenuItemsByCategoryId(generics.ListAPIView):
     lookup_url_kwarg = 'category_id'
 
     def get(self, request, *args, **kwargs):
@@ -58,5 +66,12 @@ class DeleteMenuCategory(generics.DestroyAPIView):
 class ListMenuCategories(generics.ListAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    permission_classes = (IsAuthenticated,
+                          IsAdminUser)
+
+
+class ListAllTypes(generics.ListAPIView):
+    queryset = Type.objects.all()
+    serializer_class = TypeSerializer
     permission_classes = (IsAuthenticated,
                           IsAdminUser)

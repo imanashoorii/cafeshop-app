@@ -25,18 +25,17 @@ class Type(models.Model):
         (1, 'ماکتیل ها'),
         (2, 'نوشیدنی های سالم'),
         (3, 'شیک ها'),
-        (4, 'غذاهای اصلی'),
-        (5, 'پیشنهاد باریستا'),
-        (6, 'دمنوش های الهام بخش'),
-        (7, 'دسرها'),
-        (8, 'وافل/کرپ'),
-        (9, 'پیتزا و پاستا'),
-        (10, 'ساندویج و برگر'),
-        (11, 'استیک'),
-        (12, 'غذای ایرانی'),
-        (13, 'صبحانه'),
-        (14, 'سالاد'),
-        (15, 'سوپ'),
+        (4, 'پیشنهاد باریستا'),
+        (5, 'دمنوش های الهام بخش'),
+        (6, 'دسرها'),
+        (7, 'وافل/کرپ'),
+        (8, 'پیتزا و پاستا'),
+        (9, 'ساندویج و برگر'),
+        (10, 'استیک'),
+        (11, 'غذای ایرانی'),
+        (12, 'صبحانه'),
+        (13, 'سالاد'),
+        (14, 'سوپ'),
     )
     name = models.IntegerField(choices=CHOICES)
 
@@ -46,7 +45,7 @@ class Type(models.Model):
         verbose_name_plural = "types"
 
     def __str__(self):
-        return self.name
+        return self.get_name_display()
 
 
 class Menu(models.Model):
@@ -61,4 +60,4 @@ class Menu(models.Model):
         ordering = ('category',)
 
     def __str__(self):
-        return f'{self.category} {self.name}'
+        return f'{self.category} - {self.type} - {self.name}'
