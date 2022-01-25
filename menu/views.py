@@ -23,13 +23,16 @@ class ListAllMenuItems(generics.ListAPIView):
 
 
 class ListMenuItemsByCategoryId(generics.ListAPIView):
-    lookup_url_kwarg = 'category_id'
+    lookup_url_kwarg_category = 'category'
+    lookup_url_kwarg_type = 'type'
 
     def get(self, request, *args, **kwargs):
-        key = self.kwargs[self.lookup_url_kwarg]
-        menu = Menu.objects.filter(category_id=key)
+        category = self.kwargs[self.lookup_url_kwarg_category]
+        type = self.kwargs[self.lookup_url_kwarg_type]
+        menu = Menu.objects.filter(category__name=category, type__name=type)
         serializer = ListMenuByCategorySerializer(menu, many=True)
         return Response(serializer.data)
+
 
 
 class GetMenuItemById(generics.RetrieveAPIView):

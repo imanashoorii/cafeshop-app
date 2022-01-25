@@ -12,7 +12,7 @@ from menu.views import CreateMenuItem,\
 urlpatterns = [
     path("menu/create", CreateMenuItem.as_view()),
     path('menu/list', ListAllMenuItems.as_view()),
-    path('menu/list/<int:category_id>', ListMenuItemsByCategoryId.as_view()),
+    path('menu/list/<int:category>/<int:type>', ListMenuItemsByCategoryId.as_view()),
     path('menu/detail/<int:pk>', GetMenuItemById.as_view()),
     path('menu/delete/<int:pk>', DeleteMenuItem.as_view()),
     path("menu/category/list", ListMenuCategories.as_view()),
