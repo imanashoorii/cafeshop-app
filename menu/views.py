@@ -34,7 +34,6 @@ class ListMenuItemsByCategoryId(generics.ListAPIView):
         return Response(serializer.data)
 
 
-
 class GetMenuItemById(generics.RetrieveAPIView):
     queryset = Menu.objects.all()
     serializer_class = MenuSerializer
