@@ -22,6 +22,7 @@ class MenuSerializer(serializers.ModelSerializer):
     category = serializers.StringRelatedField(many=False, read_only=True)
     type = serializers.StringRelatedField(many=False, read_only=True)
     category_id = serializers.IntegerField(write_only=True)
+    type_id = serializers.IntegerField(write_only=True)
 
     class Meta:
         model = Menu
@@ -50,7 +51,13 @@ class MenuSerializer(serializers.ModelSerializer):
                 "error_messages": {
                     "required": "دسته بندی وارد نشده است",
                 },
-            }
+            },
+            'type_id': {
+                'required': True,
+                "error_messages": {
+                    "required": "نوع وارد نشده است",
+                },
+            },
         }
 
 
