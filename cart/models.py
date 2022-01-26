@@ -21,6 +21,7 @@ class Order(models.Model):
     items = models.ManyToManyField(OrderItem)
     createdAt = models.DateTimeField(auto_now_add=True)
     orderedAt = models.DateTimeField()
+    ordered = models.BooleanField(default=False)
 
     def __str__(self):
         return self.user.username
