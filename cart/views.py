@@ -3,14 +3,11 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.views import APIView
-from django.core.exceptions import ObjectDoesNotExist
 from users.permissions import UserIsOwnerOrReadOnly
 from .models import Order, OrderItem
 from menu.models import Menu
 from .serializers import OrderSerializer
-from django.http import Http404
 from datetime import datetime
-
 
 
 class OrderSummaryAdmin(generics.ListAPIView):
@@ -37,7 +34,7 @@ class OrderSummaryUser(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class AddToCart(APIView):
+class AddToCartOrUpdateQuantity(APIView):
     permission_classes = (IsAuthenticated,
                           UserIsOwnerOrReadOnly,)
 
@@ -74,3 +71,59 @@ class AddToCart(APIView):
         return Response({"message": "Item added to cart",
                          "data": serializer.data,
                          "total": order.get_total_price()}, status=status.HTTP_201_CREATED)
+
+
+class RemoveFromCart(APIView):
+    permission_classes = (IsAuthenticated,
+                          UserIsOwnerOrReadOnly,)
+
+    def get_object(self, pk):
+        return get_object_or_404(Menu, pk=pk)
+
+    def post(self, request, pk):
+        item = self.get_object(pk=pk)
+        order_qs = Order.objects.filter(user=request.user, ordered=False)
+        if order_qs.exists():
+            order = order_qs[0]
+            if order.items.filter(item__pk=item.pk).exists():
+                order_item = OrderItem.objects.filter(
+                    item=item,
+                    user=request.user,
+                    ordered=False
+                )[0]
+                order_item.delete()
+                return Response({"message": "حذف شد"}, status=status.HTTP_204_NO_CONTENT)
+            else:
+                return Response({"message": "این آیتم در سبد خرید شما نیست"}, status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response({"message": "هیچ سفارشی ندارید"}, status=status.HTTP_204_NO_CONTENT)
+
+
+class ReduceCartQuantity(APIView):
+    permission_classes = (IsAuthenticated,
+                          UserIsOwnerOrReadOnly,)
+
+    def get_object(self, pk):
+        return get_object_or_404(Menu, pk=pk)
+
+    def post(self, request, pk):
+        item = self.get_object(pk=pk)
+        order_qs = Order.objects.filter(user=request.user, ordered=False)
+        if order_qs.exists():
+            order = order_qs[0]
+            if order.items.filter(item__pk=item.pk).exists():
+                order_item = OrderItem.objects.filter(
+                    item=item,
+                    user=request.user,
+                    ordered=False
+                )[0]
+                if order_item.quantity > 0:
+                    order_item.quantity -= 1
+                    order_item.save()
+                else:
+                    order_item.delete()
+                return Response({"message": "Cart Updated"}, status=status.HTTP_200_OK)
+            else:
+                return Response({"message": "این آیتم در سبد خرید شما نیست"})
+        else:
+            return Response({"message": "هیچ سفارشی ندارید"}, status=status.HTTP_204_NO_CONTENT)
