@@ -11,9 +11,16 @@ class JalaliDateTimeField(serializers.Field):
         return
 
 
+class OrderItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderItem
+        fields = '__all__'
+
+
 class OrderSerializer(serializers.ModelSerializer):
     createdAt = JalaliDateTimeField()
     orderedAt = JalaliDateTimeField()
+    items = OrderItemSerializer(read_only=True, many=True)
 
     class Meta:
         model = Order
