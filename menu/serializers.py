@@ -26,7 +26,8 @@ class MenuSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Menu
-        exclude = ['id']
+        # exclude = ['id']
+        fields = '__all__'
         extra_kwargs = {
             'name': {
                 'required': True,

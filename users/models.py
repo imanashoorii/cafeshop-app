@@ -12,7 +12,7 @@ class User(AbstractUser):
     mobile = models.CharField(max_length=11)
     email = models.CharField(max_length=256)
     address = models.CharField(max_length=1000, null=True)
-    refCode = models.CharField(max_length=50, null=True)
+    refCode = models.CharField(max_length=50, null=True, unique=True)
     last_login = models.DateTimeField(blank=True, null=True)
     updatedAt = models.DateTimeField(blank=True, null=True)
     createdAt = models.DateTimeField(auto_now_add=True)
