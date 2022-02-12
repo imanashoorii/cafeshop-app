@@ -1,4 +1,5 @@
 from datetime import datetime
+from django.core.cache import cache
 
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
@@ -195,26 +196,37 @@ class VerifyOTPView(APIView):
                 )
 
             obj = otp.first()
-
-            if obj.otp == received_code:
-                user = get_user_model().objects.get(mobile=obj.phone)
-                self.confirm_for_authentication = True
-                if self.confirm_for_authentication:
-                    token, created = Token.objects.get_or_create(user=user)
-                    user.last_login = datetime.now()
-                    user.save()
-                    obj.delete()
-                    return Response({
-                        'token': token.key,
-                        'message': "success",
-                        'userId': user.pk,
-                    })
+            code_in_cache = cache.get(obj.phone)
+            if code_in_cache is not None:
+                if obj.otp == received_code:
+                    user = get_user_model().objects.get(mobile=obj.phone)
+                    self.confirm_for_authentication = True
+                    if self.confirm_for_authentication:
+                        token, created = Token.objects.get_or_create(user=user)
+                        user.last_login = datetime.now()
+                        user.save()
+                        obj.delete()
+                        cache.delete(obj.phone)
+                        return Response({
+                            'token': token.key,
+                            'message': "success",
+                            'userId': user.pk,
+                        })
+                else:
+                    return Response(
+                        {
+                            "message": "کد ارسال شده صحیح نمی باشد",
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
             else:
+                obj.delete()
+                cache.delete(obj.phone)
                 return Response(
                     {
-                        "message": "کد ارسال شده صحیح نمی باشد",
+                        "message": "کد ارسال شده منقضی شده است",
                     },
-                    status=status.HTTP_400_BAD_REQUEST,
+                    status=status.HTTP_408_REQUEST_TIMEOUT,
                 )
 
         else:

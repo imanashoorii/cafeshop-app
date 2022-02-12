@@ -156,5 +156,18 @@ CORS_ORIGIN_ALLOW_ALL = True
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
+CACHES = {
+    "default": {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://localhost',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+
+            # 'PASSWORD': "963852741", # echo "zibal-staging" | sha1sum
+            # 'MAX_ENTRIES': 5000,
+        },
+    },
+}
+
 # .env keys
 KAVENEGAR_KEY = env('KAVENEGAR_SECRET_KEY')
