@@ -1,16 +1,22 @@
+from datetime import datetime
+
+from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.utils import timezone
 from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from .kavenegar import sendLoginSMS
-from .models import User
+from .models import User, OTP
 from .permissions import UserIsOwnerOrReadOnly
+from .utils import otp_generator
 
-from .serializers import UserSerializer, ChangePasswordSerializer, UpdateUserSerializer
+from .serializers import UserSerializer, ChangePasswordSerializer, UpdateUserSerializer, AuthWithPhoneSerializer, \
+    OTPSerializer
 
 
 class CustomAuthToken(ObtainAuthToken):
@@ -84,7 +90,135 @@ class UpdateUserProfile(generics.UpdateAPIView):
         return Response(result)
 
 
-class LoginWithOTP:
-    # TODO: Should Complete it !
-    pass
+class LoginWithPhoneView(APIView):
+    permission_classes = [
+        AllowAny,
+    ]
 
+    def post(self, request, format=None):
+        serializer = AuthWithPhoneSerializer(data=request.data)
+        if serializer.is_valid():
+            phone = serializer.validated_data.get("phone")
+            is_exists: bool = get_user_model().objects.filter(mobile=phone).values("mobile").exists()
+            if not is_exists:
+                return Response(
+                    {"message": "کاربری با این شماره یافت نشد"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            code = otp_generator()
+            otp, _ = OTP.objects.get_or_create(
+                phone=phone
+            )
+            otp.otp = code
+            otp.count = 1
+            otp.save(update_fields=['otp', 'count'])
+            cache.set(phone, code, 100)
+            sendLoginSMS(receptor=phone, otp=code)
+            context = {
+                "message": "code has been sent",
+            }
+            return Response(
+                context,
+                status=status.HTTP_200_OK,
+            )
+        else:
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+class RegisterWithPhone(APIView):
+    permission_classes = [
+        AllowAny,
+    ]
+
+    def post(self, request, format=None):
+        serializer = AuthWithPhoneSerializer(data=request.data)
+        if serializer.is_valid():
+            phone = serializer.validated_data.get("phone")
+            is_exists: bool = get_user_model().objects.filter(mobile=phone).values("mobile").exists()
+            if is_exists:
+                return Response(
+                    {"message": "این شماره قبلا در سیستم ثبت شده است"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            code = otp_generator()
+            user_otp, _ = OTP.objects.get_or_create(
+                phone=phone,
+            )
+            user_otp.otp = code
+            user_otp.count += 1
+            user_otp.save(update_fields=["otp", "count"])
+            if user_otp.count >= 4:
+                return Response(
+                    {
+                        "Many Request": "You requested too much.",
+                    },
+                    status=status.HTTP_429_TOO_MANY_REQUESTS,
+                )
+            # cache.set(phone, code, 100)
+            sendLoginSMS(receptor=phone, otp=code)
+            context = {
+                "code sent.": "The code has been sent to the desired phone number.",
+            }
+            return Response(
+                context,
+                status=status.HTTP_200_OK,
+            )
+        else:
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+class VerifyOTPView(APIView):
+    permission_classes = [
+        AllowAny,
+    ]
+    confirm_for_authentication = False
+
+    def post(self, request):
+        serializer = OTPSerializer(data=request.data)
+        if serializer.is_valid():
+            received_code = serializer.validated_data.get("code")
+            otp = OTP.objects.filter(otp=received_code)
+
+            if not otp.exists():
+                return Response(
+                    {
+                        "message": "کد ارسال شده صحیح نمی باشد",
+                    },
+                    status=status.HTTP_406_NOT_ACCEPTABLE,
+                )
+
+            obj = otp.first()
+
+            if obj.otp == received_code:
+                user = get_user_model().objects.get(mobile=obj.phone)
+                self.confirm_for_authentication = True
+                if self.confirm_for_authentication:
+                    token, created = Token.objects.get_or_create(user=user)
+                    user.last_login = datetime.now()
+                    user.save()
+                    obj.delete()
+                    return Response({
+                        'token': token.key,
+                        'message': "success",
+                        'userId': user.pk,
+                    })
+            else:
+                return Response(
+                    {
+                        "message": "کد ارسال شده صحیح نمی باشد",
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        else:
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST,
+            )

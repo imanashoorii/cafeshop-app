@@ -3,7 +3,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.utils.crypto import get_random_string
 
 from rest_framework import serializers
-from .models import User
+from .models import User, OTP
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -171,3 +171,42 @@ class UpdateUserSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+
+
+class AuthWithPhoneSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OTP
+        exclude = ["id"]
+        extra_kwargs = {
+            'phone': {
+                'required': True,
+                "error_messages": {
+                    "required": "شماره موبایل وارد نشده است",
+                },
+            },
+            'otp': {
+                'required': False,
+            }
+        }
+
+    def validate_phone(self, phone):
+        pattern = r'^09\d{9}$'
+        if not re.match(pattern, phone):
+            raise serializers.ValidationError({"message": "شماره همراه وارد شده معتبر نمی باشد"})
+        return phone
+
+
+class OTPSerializer(serializers.Serializer):
+    code = serializers.CharField(
+        max_length=6,
+    )
+
+    def validate_code(self, code):
+        from string import ascii_letters as char
+        for _ in code:
+            if _ in char:
+                raise serializers.ValidationError({
+                    "message": "کد ارسال شده معتبر نمی باشد"
+                })
+        return code

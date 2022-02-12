@@ -20,3 +20,13 @@ class User(AbstractUser):
     def save(self, *args, **kwargs):
         self.updatedAt = timezone.now()
         super(User, self).save(*args, **kwargs)
+
+
+class OTP(models.Model):
+    phone = models.CharField(max_length=11, unique=True)
+    otp = models.CharField(max_length=6)
+    count = models.PositiveSmallIntegerField(default=0)
+    verify = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.phone
