@@ -117,7 +117,7 @@ class LoginWithPhoneView(APIView):
             cache.set(phone, code, 100)
             sendLoginSMS(receptor=phone, otp=code)
             context = {
-                "message": "code has been sent",
+                "message": "کد با موفقیت ارسال شد",
             }
             return Response(
                 context,
