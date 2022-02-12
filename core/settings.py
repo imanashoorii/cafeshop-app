@@ -162,9 +162,6 @@ CACHES = {
         'LOCATION': 'redis://localhost',
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-
-            # 'PASSWORD': "963852741", # echo "zibal-staging" | sha1sum
-            # 'MAX_ENTRIES': 5000,
         },
     },
 }
