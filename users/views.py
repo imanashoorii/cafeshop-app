@@ -102,13 +102,13 @@ class LoginWithPhoneView(APIView):
         if serializer.is_valid():
             phone = serializer.validated_data.get("phone")
             code = otp_generator()
+            cache.set(phone, code, 100)
             otp, _ = OTP.objects.get_or_create(
                 phone=phone
             )
             otp.otp = code
             otp.count = 1
             otp.save(update_fields=['otp', 'count'])
-            cache.set(phone, code, 100)
             sendLoginSMS(receptor=phone, otp=code)
             context = {
                 "message": "کد با موفقیت ارسال شد",
