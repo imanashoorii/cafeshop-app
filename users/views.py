@@ -4,6 +4,7 @@ from django.core.cache import cache
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.utils import timezone
+from django.utils.crypto import get_random_string
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
@@ -100,8 +101,8 @@ class LoginWithPhoneView(APIView):
         serializer = AuthWithPhoneSerializer(data=request.data)
         if serializer.is_valid():
             phone = serializer.validated_data.get("phone")
-            is_exists: bool = get_user_model().objects.filter(mobile=phone).values("mobile").exists()
-            if not is_exists:
+            isUser: bool = get_user_model().objects.filter(mobile=phone).values("mobile").exists()
+            if not isUser:
                 return Response(
                     {"message": "کاربری با این شماره یافت نشد"},
                     status=status.HTTP_400_BAD_REQUEST
@@ -118,51 +119,6 @@ class LoginWithPhoneView(APIView):
             sendLoginSMS(receptor=phone, otp=code)
             context = {
                 "message": "کد با موفقیت ارسال شد",
-            }
-            return Response(
-                context,
-                status=status.HTTP_200_OK,
-            )
-        else:
-            return Response(
-                serializer.errors,
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-
-class RegisterWithPhone(APIView):
-    permission_classes = [
-        AllowAny,
-    ]
-
-    def post(self, request, format=None):
-        serializer = AuthWithPhoneSerializer(data=request.data)
-        if serializer.is_valid():
-            phone = serializer.validated_data.get("phone")
-            is_exists: bool = get_user_model().objects.filter(mobile=phone).values("mobile").exists()
-            if is_exists:
-                return Response(
-                    {"message": "این شماره قبلا در سیستم ثبت شده است"},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            code = otp_generator()
-            user_otp, _ = OTP.objects.get_or_create(
-                phone=phone,
-            )
-            user_otp.otp = code
-            user_otp.count += 1
-            user_otp.save(update_fields=["otp", "count"])
-            if user_otp.count >= 4:
-                return Response(
-                    {
-                        "Many Request": "You requested too much.",
-                    },
-                    status=status.HTTP_429_TOO_MANY_REQUESTS,
-                )
-            # cache.set(phone, code, 100)
-            sendLoginSMS(receptor=phone, otp=code)
-            context = {
-                "code sent.": "The code has been sent to the desired phone number.",
             }
             return Response(
                 context,
@@ -221,7 +177,6 @@ class VerifyOTPView(APIView):
                     )
             else:
                 obj.delete()
-                cache.delete(obj.phone)
                 return Response(
                     {
                         "message": "کد ارسال شده منقضی شده است",

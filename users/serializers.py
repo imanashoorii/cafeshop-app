@@ -49,7 +49,7 @@ class UserSerializer(serializers.ModelSerializer):
     def validate_mobile(self, mobile):
         pattern = r'^09\d{9}$'
         if not re.match(pattern, mobile):
-            raise serializers.ValidationError("شماره همراه وارد شده معتبر نیست!")
+            raise serializers.ValidationError("شماره همراه وارد شده معتبر نمی باشد")
         return mobile
 
     def validate_email(self, email):
@@ -58,12 +58,11 @@ class UserSerializer(serializers.ModelSerializer):
         if User.objects.exclude(pk=user.pk).filter(email=email).exists():
             raise serializers.ValidationError({"error": "ایمیل تکراری است"})
         if not re.match(pattern, email):
-            raise serializers.ValidationError("آدرس ایمیل معتبر نیست")
+            raise serializers.ValidationError("آدرس ایمیل معتبر نمی باشد")
         return email
 
     def create(self, validated_data):
         user = super().create(validated_data)
-        user.set_password(validated_data['password'])
         user.refCode = get_random_string(10)
         user.save()
         return user
