@@ -101,13 +101,6 @@ class LoginWithPhoneView(APIView):
         serializer = AuthWithPhoneSerializer(data=request.data)
         if serializer.is_valid():
             phone = serializer.validated_data.get("phone")
-            isUser: bool = get_user_model().objects.filter(mobile=phone).values("mobile").exists()
-            if not isUser:
-                return Response(
-                    {"message": "کاربری با این شماره یافت نشد"},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
             code = otp_generator()
             otp, _ = OTP.objects.get_or_create(
                 phone=phone
@@ -155,6 +148,12 @@ class VerifyOTPView(APIView):
             code_in_cache = cache.get(obj.phone)
             if code_in_cache is not None:
                 if obj.otp == received_code:
+                    isUser: bool = get_user_model().objects.filter(mobile=obj.phone).values("mobile").exists()
+                    if not isUser:
+                        return Response(
+                            {"message": "کاربری با این شماره یافت نشد"},
+                            status=status.HTTP_400_BAD_REQUEST
+                        )
                     user = get_user_model().objects.get(mobile=obj.phone)
                     self.confirm_for_authentication = True
                     if self.confirm_for_authentication:
